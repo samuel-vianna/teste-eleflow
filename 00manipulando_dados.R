@@ -30,4 +30,14 @@ for(i in seq_along(pacientes$Medico)){
 
 pacientes$dist <- dist / 1000
 
+pacientes<-pacientes[-c(103,104,561,562,563,993,994,1690,1901),]
+
+# categorizando idade
+
+pacientes$Categoria[pacientes$Idade < 40] = "menor que 40"
+pacientes$Categoria[pacientes$Idade >= 40 & pacientes$Idade < 60] = "40 a 60"
+pacientes$Categoria[pacientes$Idade >= 60] = "maior que 60"
+
+
 write.table(pacientes, 'pacientes.csv', sep=',', row.names = F)
+
