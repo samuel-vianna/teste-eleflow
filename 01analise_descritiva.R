@@ -5,7 +5,7 @@ library(leaflet)
 library(corrplot)
 library(leaflet)
 
-pacientes <- read.table('pacientes.csv', sep=',', h=T)
+pacientes <- read.table('./data/pacientes.csv', sep=',', h=T)
 head(pacientes)
 
 ######################################################

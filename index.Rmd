@@ -1,0 +1,73 @@
+---
+title: Laboratório de Estatística Aplicada 
+author: UEM - 2021
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+runtime: shiny_prerendered
+---
+
+```{r, message=F, warning=F, echo=F}
+library(shiny)
+
+knitr::opts_chunk$set(message = F, warning = F, echo=F)
+
+source('./01analise_functions.R')
+```
+
+
+<!-- ------------------------------------------------- -->
+# Introdução
+
+Um texto bonito sobre o banco de dados e tudo mais e blá blá blá.
+
+## Variáveis:
+
+O banco de dados fornecido contém as seguintes variáveis:
+
+- Longitude
+- Latitude
+- Médico
+- Idade
+
+Além do mais, também foi fornecido a localização em que cada médico realiza os atendimentos, sendo com isso possível calcular a distância entre a residência do paciente e o local de atendimento.
+
+Para o cálculo da distância foi utilizado a fórmula de *Haversine*.
+
+<!-- ------------------------------------------------- -->
+# Objetivos
+
+- Bora escrever oq a gente quer fazer com essa pesquisa aq vitão
+
+
+<!-- ------------------------------------------------- -->
+# Lendo e manipulando os dados
+
+
+<!-- ------------------------------------------------- -->
+# Análise Descritiva
+
+```{r}
+# frequência de atendimento por médicos
+pacientes %>%
+  ggplot(aes(x=Medico)) + geom_bar(fill=fill_color) + theme_minimal()
+```
+
+```{r}
+selectInput('input_hist_boxplot', 'Selecione uma variável', 
+            choices = c('Idade' = 'Idade', 'Distância' = 'dist'))
+
+plotOutput('output_hist_boxplot')
+```
+
+
+```{r, context="server", include=T}
+output$output_hist_boxplot <- renderPlot({
+  hist_boxplot(pacientes[,input$input_hist_boxplot])
+})
+
+```
+
+
+<!-- ------------------------------------------------- -->
+# Testes

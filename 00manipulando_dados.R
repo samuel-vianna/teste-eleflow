@@ -5,7 +5,7 @@ library(geosphere)
 
 ##### médicos #####
 
-medicos <- read_xlsx('dados_raw.xlsx', sheet = 2)
+medicos <- read_xlsx('./data/dados_raw.xlsx', sheet = 2)
 
 str_split(medicos$Local, ' ') %>% 
   sapply(function(x) {
@@ -14,11 +14,11 @@ str_split(medicos$Local, ' ') %>%
 
 head(medicos)
 
-write.table(medicos, 'medicos.csv', sep=',', row.names = F)
+write.table(medicos, ',/data/medicos.csv', sep=',', row.names = F)
 
 ##### pacientes #####
 
-pacientes <- read_xlsx('dados_raw.xlsx')
+pacientes <- read_xlsx('./data/dados_raw.xlsx')
 head(pacientes)
 
 dist <- numeric(length(pacientes$Medico))
@@ -39,5 +39,5 @@ pacientes$Categoria[pacientes$Idade >= 40 & pacientes$Idade < 60] = "40 a 60"
 pacientes$Categoria[pacientes$Idade >= 60] = "maior que 60"
 
 
-write.table(pacientes, 'pacientes.csv', sep=',', row.names = F)
+write.table(pacientes, './data/pacientes.csv', sep=',', row.names = F)
 
