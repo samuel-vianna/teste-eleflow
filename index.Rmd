@@ -9,6 +9,7 @@ runtime: shiny_prerendered
 ```{r, message=F, warning=F, echo=F}
 library(shiny)
 library(knitr)
+library(corrplot)
 
 knitr::opts_chunk$set(message = F, warning = F, echo=F)
 
@@ -19,44 +20,60 @@ source('./01analise_functions.R')
 <!-- ------------------------------------------------- -->
 # Introdução
 
-Um texto bonito sobre o banco de dados e tudo mais e blá blá blá.
+A fim de fixar os conhecimentos passados em sala de aula, foi passado um banco de dados com informações sobre atendimentos em pontos de saúde de Maringá. 
 
-## Variáveis:
+## Variáveis
 
 O banco de dados fornecido contém as seguintes variáveis:
 
-- Longitude
-- Latitude
-- Médico
-- Idade
+- Longitude;
+- Latitude;
+- Médico;
+- Idade.
 
 Além do mais, também foi fornecido a localização em que cada médico realiza os atendimentos, sendo com isso possível calcular a distância entre a residência do paciente e o local de atendimento.
 
 Para o cálculo da distância foi utilizado a fórmula de *Haversine*.
 
+Além do mais, a fim de procurar outros meios para avaliar a idade dos pacientes, foi criada uma variável denominada categoria, classificando a idade dos pacientes com os seguintes invervalos:
+
+- Jovem adulto: 20 a 40 anos;
+- Meia idade: 41 a 60 anos;
+- Idoso: acima de 60 anos.
+
 <!-- ------------------------------------------------- -->
 # Objetivos
 
-- Bora escrever oq a gente quer fazer com essa pesquisa aq vitão
+Com base nisso, esse trabalho possui os seguintes objetivos:
 
+- Verificar correlação entre distância e idade;
+- Verificar a média de idade atendida por cada médico;
+- Verificar a média de distância atendida por cada médico.
 
 <!-- ------------------------------------------------- -->
 # Lendo e manipulando os dados
 
-Após a leitura dos dados e cálculo da distância, o conjunto de dados ficou da seguinte forma:
+Após a leitura dos dados e criação de variáveis, o conjunto de dados ficou da seguinte forma:
 
 ```{r}
-head(pacientes) %>% kable(align='c', booktabs=T)
+DT::dataTableOutput('view_data')
 ```
 
-texto para explicar q vai tirar umas coisas da distância
+```{r, context="server", include=T}
+output$view_data <- DT::renderDataTable({
+  pacientes
+})
+```
+
+Após olhar as variáveis, percebe-se que há pacientes em que a distância foi superior à 50 km, como pode ser visto a seguir.
 
 ```{r}
-pacientes %>% filter(dist > 50) %>% kable(align='c', booktabs=T)
-
+pacientes %>% filter(dist > 50) %>% make_table()
 
 pacientes <- pacientes %>% filter(dist < 50)
 ```
+
+A fim de buscar uma melhor visualização dos dados, essas observações serão tratadas como valores errados e serão removidas do banco de dados.
 
 <!-- ------------------------------------------------- -->
 # Análise Descritiva
@@ -72,6 +89,8 @@ selectInput('input_hist_boxplot', 'Selecione uma variável',
             choices = c('Idade' = 'Idade', 'Distância' = 'dist'))
 
 plotOutput('output_hist_boxplot')
+
+textOutput('output_analise_1')
 ```
 
 
@@ -80,6 +99,42 @@ output$output_hist_boxplot <- renderPlot({
   hist_boxplot(pacientes[,input$input_hist_boxplot])
 })
 
+output$output_analise_1 <- renderText({
+  r <- ''
+  if(input$input_hist_boxplot == 'Idade'){
+    r <- 'um texto para o primeiro gráfico (idade)'
+  } else{
+    r <- 'um texto para o segundo gráfico (dist)'
+  }
+  return(r)
+})
+```
+
+
+```{r}
+selectInput('input_table_1', 'Selecione um tipo', 
+            choices = c('Absoluta' = 'abs', 'Relativa' = 'rel'))
+
+DT::dataTableOutput('output_table_1')
+
+```
+
+```{r, context="server", include=T}
+output$output_table_1 <- DT::renderDataTable({
+  base <- table(pacientes$Medico, pacientes$categoria)
+  tab <- base
+  if(input$input_table_1 == 'rel'){
+    tab <- base %>% prop.table(margin = 1) %>% round(3)
+  }
+   
+  return(tab %>% as.data.frame.array())
+})
+```
+
+## Correlação
+
+```{r}
+cor(pacientes[,c('Idade', 'dist')]) %>% make_table()
 ```
 
 

@@ -35,3 +35,8 @@ boxplot_medico <- function(var) {
 }
 
 
+
+# função para fazer tabelas
+make_table <- function(table, align='c', booktabs=T){
+  kable(table, align = align, booktabs=booktabs)
+}
