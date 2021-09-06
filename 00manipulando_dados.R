@@ -14,13 +14,14 @@ str_split(medicos$Local, ' ') %>%
 
 head(medicos)
 
-write.table(medicos, ',/data/medicos.csv', sep=',', row.names = F)
+write.table(medicos, './data/medicos.csv', sep=',', row.names = F)
 
 ##### pacientes #####
 
 pacientes <- read_xlsx('./data/dados_raw.xlsx')
 head(pacientes)
 
+# distância
 dist <- numeric(length(pacientes$Medico))
 
 for(i in seq_along(pacientes$Medico)){
@@ -28,15 +29,17 @@ for(i in seq_along(pacientes$Medico)){
   dist[i] <- distHaversine(pacientes[i,c(2,1)], medicos[ind, c(3,2)])
 }
 
-pacientes$dist <- dist / 1000
+pacientes$dist <- round(dist / 1000, 3)
 
-pacientes<-pacientes[-c(103,104,561,562,563,993,994,1690,1901),]
 
 # categorizando idade
 
-pacientes$Categoria[pacientes$Idade < 40] = "menor que 40"
-pacientes$Categoria[pacientes$Idade >= 40 & pacientes$Idade < 60] = "40 a 60"
-pacientes$Categoria[pacientes$Idade >= 60] = "maior que 60"
+pacientes$categoria <- case_when(
+  pacientes$Idade <= 20 ~ 'menor que 20',
+  pacientes$Idade <= 40 ~ '20 a 40',
+  pacientes$Idade <= 60 ~ '40 a 60',
+  TRUE ~ 'acima de 60'
+)
 
 
 write.table(pacientes, './data/pacientes.csv', sep=',', row.names = F)

@@ -2,13 +2,13 @@
 title: Laboratório de Estatística Aplicada 
 author: UEM - 2021
 output:
-  prettydoc::html_pretty:
-    theme: hpstr
+  output: rmdformats::readthedown
 runtime: shiny_prerendered
 ---
 
 ```{r, message=F, warning=F, echo=F}
 library(shiny)
+library(knitr)
 
 knitr::opts_chunk$set(message = F, warning = F, echo=F)
 
@@ -43,6 +43,20 @@ Para o cálculo da distância foi utilizado a fórmula de *Haversine*.
 <!-- ------------------------------------------------- -->
 # Lendo e manipulando os dados
 
+Após a leitura dos dados e cálculo da distância, o conjunto de dados ficou da seguinte forma:
+
+```{r}
+head(pacientes) %>% kable(align='c', booktabs=T)
+```
+
+texto para explicar q vai tirar umas coisas da distância
+
+```{r}
+pacientes %>% filter(dist > 50) %>% kable(align='c', booktabs=T)
+
+
+pacientes <- pacientes %>% filter(dist < 50)
+```
 
 <!-- ------------------------------------------------- -->
 # Análise Descritiva
