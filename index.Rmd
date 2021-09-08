@@ -10,10 +10,9 @@ runtime: shiny_prerendered
 library(shiny)
 library(knitr)
 library(corrplot)
-
+library(readxl)
 knitr::opts_chunk$set(message = F, warning = F, echo=F)
-
-source('./01analise_functions.R')
+source("C:/Users/vitor/Desktop/lab-trabalho1/01analise_functions.R")
 ```
 
 
@@ -83,6 +82,20 @@ A fim de buscar uma melhor visualização dos dados, essas observações serão 
 pacientes %>%
   ggplot(aes(x=Medico)) + geom_bar(fill=fill_color) + theme_minimal()
 ```
+Pode se observar que existe uma maior frequencia de pacientes com o medico E.
+
+```{r}
+mapa_medico()
+```
+
+Conseguimos visualizar uma maior parte dos pacientes atendidos pelo medico E, e uma distribuição dos pacientes de forma hetereogenea, não clusterizada pela região do medico
+
+```{r}
+mapa_idade()
+```
+
+Percebemos uma maior frequencia de pacientes entre 40 e 60 anos, e distribuido de forma heterogena
+
 
 ```{r}
 selectInput('input_hist_boxplot', 'Selecione uma variável', 
@@ -102,9 +115,9 @@ output$output_hist_boxplot <- renderPlot({
 output$output_analise_1 <- renderText({
   r <- ''
   if(input$input_hist_boxplot == 'Idade'){
-    r <- 'um texto para o primeiro gráfico (idade)'
+    r <- 'Podemos vizualizar que entre as idades existe uma distribuição normalizada com uma media aproximada em 55 anos de idade, e no box plot vizualizamos outlaiers'
   } else{
-    r <- 'um texto para o segundo gráfico (dist)'
+    r <- 'Vizualizamos distribuição de dados concentrados do lado esquerdo, e no box plot vizualizamos dados discrepantes'
   }
   return(r)
 })
@@ -130,13 +143,27 @@ output$output_table_1 <- DT::renderDataTable({
   return(tab %>% as.data.frame.array())
 })
 ```
+```{r}
+selectInput('input_idade_medico', 'Selecione um Medico', 
+            choices = c('A' = 'A', 'B' = 'B', 'C' = 'C', 'D' = 'D', 'E' = 'E', 'F' = 'F', 'G'='G'))
+
+plotOutput('output_idade_medico')
+```
+
+```{r, context="server", include=T}
+output$output_idade_medico <- renderPlot({
+  idade_medico(input$input_idade_medico)
+})
+
+```
+Todos os medicos tem uma maior de frequncia de 40 a 60 anos
 
 ## Correlação
 
 ```{r}
 cor(pacientes[,c('Idade', 'dist')]) %>% make_table()
 ```
-
+Verificando a correlação da idade pela distancia, é possivel vizualizar que não existe correlação entre as variaveis
 
 <!-- ------------------------------------------------- -->
 # Testes
