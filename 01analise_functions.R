@@ -4,9 +4,10 @@ library(dplyr)
 library(leaflet)
 library(corrplot)
 library(leaflet)
+library(readxl)
 
-pacientes <- read.table('C:/Users/vitor/Desktop/lab-trabalho1/data/pacientes.csv', sep=',', h=T)
-medicos <- read_xlsx('C:/Users/vitor/Desktop/lab-trabalho1/data/dados_raw.xlsx', sheet = 2)
+pacientes <- read.table('./data/pacientes.csv', sep=',', h=T)
+medicos <- read_xlsx('./data/dados_raw.xlsx', sheet = 2)
 
 ######################################################
 
@@ -17,7 +18,7 @@ fill_color <- 'royalblue'
 
 ######################################################
 
-# gráfico de histograma com boxplot
+# grï¿½fico de histograma com boxplot
 hist_boxplot <- function(var) {
   g1 <- ggplot(pacientes, aes(var)) + geom_histogram(fill=fill_color, color='white') +
     theme_minimal() + xlim(range(var))
@@ -29,7 +30,7 @@ hist_boxplot <- function(var) {
 }
 
 
-# gráfico de boxplot de acordo com o médico
+# grï¿½fico de boxplot de acordo com o mï¿½dico
 boxplot_medico <- function(var) {
   ggplot(pacientes, aes(x=Medico, y=var)) + geom_boxplot(fill= fill_color) +
     theme_minimal() 
@@ -37,12 +38,12 @@ boxplot_medico <- function(var) {
 
 
 
-# função para fazer tabelas
+# funï¿½ï¿½o para fazer tabelas
 make_table <- function(table, align='c', booktabs=T){
   kable(table, align = align, booktabs=booktabs)
 }
 
-# funçao mapa medico
+# funï¿½ao mapa medico
 mapa_medico<-function(){
   cof <- colorFactor(c("red", "blue", "orange",'black',"green","pink","purple"), domain=c("A", "B", "C","D","E","F","G"))
   medicos$Local <- factor(medicos$Local)
@@ -64,7 +65,7 @@ mapa_medico<-function(){
                       popup = ~medicos$Local)
 }
 
-# funçao mapa medico
+# funï¿½ao mapa medico
 mapa_idade<-function(){
   cof <- colorFactor(c("red", "blue", "orange","black"), domain=c("20 a 40","40 a 60","acima de 60","menor que 20"))
   leaflet(pacientes)  %>% 
@@ -75,12 +76,13 @@ mapa_idade<-function(){
     addLegend("bottomright", colors= c("red", "blue", "orange"), labels=c("Menor que 40 anos","Entre 40 anos e 60 anos","Maior que 40 anos"), title="Idade")
 }
 
-# Função grafico idade pelo medico
+# Funï¿½ï¿½o grafico idade pelo medico
 idade_medico<-function(medico){
   dados<-filter(pacientes, Medico == medico)
   ggplot(dados,aes(x=categoria))+
     geom_bar(fill="royalblue")+
-    labs(x="Categoria",y="Frequencia")
+    labs(x="Categoria",y="Frequencia") +
+    theme_minimal()
   
 }
 

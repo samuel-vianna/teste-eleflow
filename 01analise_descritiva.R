@@ -5,7 +5,7 @@ library(leaflet)
 library(corrplot)
 library(leaflet)
 
-pacientes <- read.table('C:/Users/vitor/Desktop/lab-trabalho1/data/pacientes.csv', sep=',', h=T)
+pacientes <- read.table('./data/pacientes.csv', sep=',', h=T)
 head(pacientes)
 
 ######################################################
@@ -19,16 +19,16 @@ pacientes %>% group_by(Medico) %>%
             media = mean(Idade),
             mediana = median(Idade),
             max = max(Idade),
-            variância = var(Idade)
+            variï¿½ncia = var(Idade)
   )
 
-# medidas para a distância
+# medidas para a distï¿½ncia
 pacientes %>% group_by(Medico) %>% 
   summarise(min = min(dist), 
             media = mean(dist),
             mediana = median(dist),
             max = max(dist),
-            variância = var(dist)
+            variï¿½ncia = var(dist)
   )
 
 ######################################################
@@ -37,14 +37,14 @@ fill_color <- 'royalblue'
 
 ######################################################
 
-# frequência de atendimento por médicos
+# frequï¿½ncia de atendimento por mï¿½dicos
 pacientes %>%
   ggplot(aes(x=Medico)) + geom_bar(fill=fill_color) + theme_minimal()
 
 
 ######################################################
 
-# gráfico de histograma com boxplot
+# grï¿½fico de histograma com boxplot
 hist_boxplot <- function(var) {
   g1 <- ggplot(pacientes, aes(var)) + geom_histogram(fill=fill_color, color='white') +
     theme_minimal() + xlim(range(var))
@@ -55,34 +55,34 @@ hist_boxplot <- function(var) {
   grid.arrange(g1,g2, ncol=1)
 }
 
-# distribuição da idade
+# distribuiï¿½ï¿½o da idade
 hist_boxplot(pacientes$Idade)
 
-# distribuição da distância
+# distribuiï¿½ï¿½o da distï¿½ncia
 hist_boxplot(pacientes$dist)
 
 ######################################################
 
-# gráfico de boxplot de acordo com o médico
+# grï¿½fico de boxplot de acordo com o mï¿½dico
 boxplot_idade <- function(var) {
   ggplot(pacientes, aes(x=Medico, y=var)) + geom_boxplot(fill= fill_color) +
     theme_minimal() 
 }
 
-# boxplot para a idade de acordo com o médico
+# boxplot para a idade de acordo com o mï¿½dico
 boxplot_idade(pacientes$Idade)
 
-# boxplot para a distância de acordo com o médico
+# boxplot para a distï¿½ncia de acordo com o mï¿½dico
 boxplot_idade(pacientes$dist)
 
 
 ######################################################
 
-# correlação
+# correlaï¿½ï¿½o
 plot(pacientes[,4:5])
 cor(pacientes[,4:5])
 
-# Não possui correlação idade dist
+# Nï¿½o possui correlaï¿½ï¿½o idade dist
 
 ######################################################
 
