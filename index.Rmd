@@ -7,12 +7,11 @@ runtime: shiny_prerendered
 ---
 
 ```{r, message=F, warning=F, echo=F}
+knitr::opts_chunk$set(message = F, warning = F, echo=F)
 library(shiny)
 library(knitr)
 library(corrplot)
-library(readxl)
-knitr::opts_chunk$set(message = F, warning = F, echo=F)
-source("C:/Users/vitor/Desktop/lab-trabalho1/01analise_functions.R")
+source("./01analise_functions.R")
 ```
 
 
@@ -80,21 +79,47 @@ A fim de buscar uma melhor visualização dos dados, essas observações serão 
 ```{r}
 # frequência de atendimento por médicos
 pacientes %>%
-  ggplot(aes(x=Medico)) + geom_bar(fill=fill_color) + theme_minimal()
+  ggplot(aes(x=Medico)) + geom_bar(fill=fill_color) + theme_minimal() + 
+    geom_text(aes(y=..count.., label=..count..), vjust=1.5, stat = 'count') + 
+    ggtitle('Distribuição dos atendimentos de acordo com o médico')
 ```
-Pode se observar que existe uma maior frequencia de pacientes com o medico E.
+Observa-se que o médico E foi que mais atendeu pacientes.
+
+```{r}
+# frequência de categorias de idade
+pacientes %>%
+  ggplot(aes(x=categoria)) + geom_bar(fill=fill_color) + theme_minimal() + 
+    geom_text(aes(y=..count.., label=..count..), vjust=1.5, stat = 'count') +
+    ggtitle('Distribuição dos atendimentos de acordo com a faixa etária')
+```
+
+```{r}
+selectInput('input_idade_medico', 'Selecione um Médico', 
+            choices = c('A' = 'A', 'B' = 'B', 'C' = 'C', 'D' = 'D', 'E' = 'E', 'F' = 'F', 'G'='G'))
+
+plotOutput('output_idade_medico')
+```
+
+```{r, context="server", include=T}
+output$output_idade_medico <- renderPlot({
+  idade_medico(input$input_idade_medico)
+})
+
+```
+Percebe-se que a grande maioria dos pacientes está entre 40 e 60 anos, sendo essa a maior parte de pacientes atendidos por todos os médicos.
+
 
 ```{r}
 mapa_medico()
 ```
 
-Conseguimos visualizar uma maior parte dos pacientes atendidos pelo medico E, e uma distribuição dos pacientes de forma hetereogenea, não clusterizada pela região do medico
+Conseguimos visualizar uma maior parte dos pacientes atendidos pelo medico E, e uma distribuição dos pacientes de forma heterogênea, sem indícios de agrupamentos de acordo com o médico.
 
 ```{r}
 mapa_idade()
 ```
 
-Percebemos uma maior frequencia de pacientes entre 40 e 60 anos, e distribuido de forma heterogena
+Percebemos uma maior frequencia de pacientes entre 40 e 60 anos, também com uma distribuição heterogênea e sem indícios de agrupamentos geográficos.
 
 
 ```{r}
@@ -115,9 +140,9 @@ output$output_hist_boxplot <- renderPlot({
 output$output_analise_1 <- renderText({
   r <- ''
   if(input$input_hist_boxplot == 'Idade'){
-    r <- 'Podemos vizualizar que entre as idades existe uma distribuição normalizada com uma media aproximada em 55 anos de idade, e no box plot vizualizamos outlaiers'
+    r <- 'Observa-se que para a idade há indícios de normalidade dos dados com uma média aproximada em 55 anos de idade, e no boxplot nota-se alguns outliers outliers.'
   } else{
-    r <- 'Vizualizamos distribuição de dados concentrados do lado esquerdo, e no box plot vizualizamos dados discrepantes'
+    r <- 'Para a variável distância percebe-se uma certa assimetria nos dados, com eles concentrados mais ao lado esquerod.'
   }
   return(r)
 })
@@ -143,27 +168,14 @@ output$output_table_1 <- DT::renderDataTable({
   return(tab %>% as.data.frame.array())
 })
 ```
-```{r}
-selectInput('input_idade_medico', 'Selecione um Medico', 
-            choices = c('A' = 'A', 'B' = 'B', 'C' = 'C', 'D' = 'D', 'E' = 'E', 'F' = 'F', 'G'='G'))
 
-plotOutput('output_idade_medico')
-```
-
-```{r, context="server", include=T}
-output$output_idade_medico <- renderPlot({
-  idade_medico(input$input_idade_medico)
-})
-
-```
-Todos os medicos tem uma maior de frequncia de 40 a 60 anos
 
 ## Correlação
 
 ```{r}
 cor(pacientes[,c('Idade', 'dist')]) %>% make_table()
 ```
-Verificando a correlação da idade pela distancia, é possivel vizualizar que não existe correlação entre as variaveis
+Não há correlação entre a idade e a distância.
 
 <!-- ------------------------------------------------- -->
 # Testes

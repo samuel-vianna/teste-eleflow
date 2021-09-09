@@ -3,9 +3,9 @@ library(dplyr)
 library(stringr)
 library(geosphere)
 
-##### médicos #####
+##### mï¿½dicos #####
 
-medicos <- read_xlsx('C:/Users/vitor/Desktop/lab-trabalho1/data/dados_raw.xlsx', sheet = 2)
+medicos <- read_xlsx('./data/dados_raw.xlsx', sheet = 2)
 
 str_split(medicos$Local, ' ') %>% 
   sapply(function(x) {
@@ -21,7 +21,7 @@ write.table(medicos, './data/medicos.csv', sep=',', row.names = F)
 pacientes <- read_xlsx('./data/dados_raw.xlsx')
 head(pacientes)
 
-# distância
+# distï¿½ncia
 dist <- numeric(length(pacientes$Medico))
 
 for(i in seq_along(pacientes$Medico)){
@@ -42,5 +42,5 @@ pacientes$categoria <- case_when(
 )
 
 
-write.table(pacientes, 'C:/Users/vitor/Desktop/lab-trabalho1/data/pacientes.csv', sep=',', row.names = F)
+write.table(pacientes, './data/pacientes.csv', sep=',', row.names = F)
 
