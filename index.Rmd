@@ -11,6 +11,7 @@ knitr::opts_chunk$set(message = F, warning = F, echo=F)
 library(shiny)
 library(knitr)
 library(corrplot)
+library(FSA)
 source("./01analise_functions.R")
 ```
 
@@ -179,3 +180,58 @@ Não há correlação entre a idade e a distância.
 
 <!-- ------------------------------------------------- -->
 # Testes
+
+Para saber qual o teste adequado a se aplicar, foi testado se as variábeis apresentam distribuição normal.
+
+**Testes de normalidade para a idade**
+```{r}
+teste_normal(pacientes$Idade) %>% make_table()
+```
+
+**Testes de normalidade para a distância**
+```{r}
+teste_normal(pacientes$dist) %>% make_table()
+```
+
+Com base nos resultados acima, para ambas as variáveis serão utilizados testes não paramétricos para comparação múltipla.
+
+## Idade X Médico
+
+Rodando o teste de Kruskal-Wallis para verificar a diferença entre idades de acordo com o médico, temos:
+
+```{r}
+kruskal.test(Idade ~ Medico, data=pacientes)
+```
+
+
+Como visto acima, à um nível de significância de 5% não se rejeita a hipótese nula, ou seja, não há diferença significativa entre as idades atendidas por cada médico.
+
+## Distância X Médico
+
+Rodando o teste de Kruskal-Wallis para verificar a diferença entre as distâncias de acordo com o médico, temos:
+
+```{r}
+kruskal.test(dist ~ Medico, data=pacientes)
+```
+
+
+Como visto acima, à um nível de significância de 5% rejeita-se a hipótese nula, ou seja, há pelo menos um médico com a média de distância dos pacientes diferente dos demais. 
+
+Para verificar as diferenças entre os médicos, foi realizado o pós teste de Dunn.
+
+```{r}
+teste_dist_medico <- dunnTest(pacientes$dist~pacientes$Medico)
+
+teste_dist_medico[[3]]
+```
+
+Com base na tabela acima, temos os seguintes grupos:
+
+```{r}
+medias <- pacientes %>% group_by(Medico) %>% 
+  summarise(media=mean(dist)) %>% arrange(desc(media))
+
+medias$grupo <- c('A', 'A', 'B', 'B', 'BC', 'BC', 'C')
+
+medias %>% make_table()
+```

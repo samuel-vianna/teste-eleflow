@@ -13,6 +13,12 @@ medicos <- read_xlsx('./data/dados_raw.xlsx', sheet = 2)
 
 pacientes <- pacientes %>% filter(dist < 50)
 
+shapiro.test(pacientes$Idade)
+shapiro.test(pacientes$dist)
+
+nortest::ad.test(pacientes$Idade)
+nortest::pearson.test(pacientes$Idade)
+
 #anova distacia para medico, MOIO
 model<-aov(dist~Medico, pacientes)
 model
@@ -89,3 +95,23 @@ posthoc.kruskal.nemenyi.test(pacientes$dist~pacientes$Medico)
 posthoc.kruskal.nemenyi.test(pacientes$dist~pacientes$categoria)
 # Não existe diferença
 
+library(FSA)
+
+a <- dunnTest(pacientes$dist~pacientes$Medico)
+
+a[[3]]
+
+medias <- pacientes %>% group_by(Medico) %>% 
+  summarise(media=mean(dist))
+
+medias[order(medias[,2], decreasing = T),]
+
+# compração com dunnTest
+
+# medico A: A
+# medico B: A
+# medico G: B
+# medico C: B
+# medico D: BC
+# medico E: BC
+# medico F: C

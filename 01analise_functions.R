@@ -5,6 +5,8 @@ library(leaflet)
 library(corrplot)
 library(leaflet)
 library(readxl)
+library(nortest)
+library(stringr)
 
 pacientes <- read.table('./data/pacientes.csv', sep=',', h=T)
 medicos <- read_xlsx('./data/dados_raw.xlsx', sheet = 2)
@@ -86,3 +88,20 @@ idade_medico<-function(medico){
   
 }
 
+# função para testar normalidade
+
+teste_normal <- function(var){
+  shapiro <- shapiro.test(var)
+  ad <- ad.test(var)
+  cvm <- cvm.test(var)
+  lillie <- lillie.test(var)
+  
+  rbind(shapiro,ad,cvm, lillie) %>% as.data.frame(row.names = F) %>%
+    select(-c(statistic, data.name)) %>%
+    relocate(method) %>% 
+    mutate(method = str_replace_all(method, 'normality test', '')) %>% 
+    mutate(teste = ifelse(p.value > 0.05, 'Não rejeita H0', 'Rejeita H0')) %>%
+    return()
+}
+
+teste_normal(rnorm(1000))
