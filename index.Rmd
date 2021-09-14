@@ -77,6 +77,8 @@ A fim de buscar uma melhor visualização dos dados, essas observações serão 
 <!-- ------------------------------------------------- -->
 # Análise Descritiva
 
+## Gráficos e tabelas
+
 ```{r}
 # frequência de atendimento por médicos
 pacientes %>%
@@ -109,18 +111,6 @@ output$output_idade_medico <- renderPlot({
 ```
 Percebe-se que a grande maioria dos pacientes está entre 40 e 60 anos, sendo essa a maior parte de pacientes atendidos por todos os médicos.
 
-
-```{r}
-mapa_medico()
-```
-
-Conseguimos visualizar uma maior parte dos pacientes atendidos pelo medico E, e uma distribuição dos pacientes de forma heterogênea, sem indícios de agrupamentos de acordo com o médico.
-
-```{r}
-mapa_idade()
-```
-
-Percebemos uma maior frequencia de pacientes entre 40 e 60 anos, também com uma distribuição heterogênea e sem indícios de agrupamentos geográficos.
 
 
 ```{r}
@@ -167,6 +157,42 @@ output$output_table_1 <- DT::renderDataTable({
   }
    
   return(tab %>% as.data.frame.array())
+})
+```
+
+## Mapas
+
+```{r}
+mapa_medico()
+```
+
+Conseguimos visualizar uma maior parte dos pacientes atendidos pelo medico E, e uma distribuição dos pacientes de forma heterogênea, sem indícios de agrupamentos de acordo com o médico.
+
+```{r}
+mapa_idade()
+```
+
+Percebemos uma maior frequencia de pacientes entre 40 e 60 anos, também com uma distribuição heterogênea e sem indícios de agrupamentos geográficos.
+
+
+```{r}
+fluidRow(
+    column(6,
+      sliderInput('radius_input', 'Radius', min=5, max=50, value=20)
+    ),
+    column(6,
+      sliderInput('blur_input', 'Blur', min=1, max=20, value=10)
+    )
+  )
+
+
+
+leafletOutput('mapa_geral')
+```
+
+```{r, context='server', include=T}
+output$mapa_geral <- renderLeaflet({
+  mapa_geral(input$radius_input,input$blur_input)
 })
 ```
 

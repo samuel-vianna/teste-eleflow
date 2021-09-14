@@ -2,6 +2,7 @@ library(ggplot2)
 library(gridExtra)
 library(dplyr)
 library(leaflet)
+library(leaflet.extras)
 library(corrplot)
 library(leaflet)
 library(readxl)
@@ -46,6 +47,14 @@ make_table <- function(table, align='c', booktabs=T){
 }
 
 # fun�ao mapa medico
+mapa_geral<-function(radius, blur){
+  leaflet(pacientes)  %>% 
+    addProviderTiles("Esri") %>% 
+    setView(-51.931180, -23.415453, zoom = 12) %>% 
+    addHeatmap(lng=~Longitude,lat=~Latitude,max=100,radius=radius,blur=blur)
+}
+
+# fun�ao mapa medico
 mapa_medico<-function(){
   cof <- colorFactor(c("red", "blue", "orange",'black',"green","pink","purple"), domain=c("A", "B", "C","D","E","F","G"))
   medicos$Local <- factor(medicos$Local)
@@ -59,7 +68,7 @@ mapa_medico<-function(){
   )
   leaflet(pacientes)  %>% 
     addProviderTiles("Esri") %>% 
-    setView(-51.931180, -23.415453, zoom = 7) %>% 
+    setView(-51.931180, -23.415453, zoom = 12) %>% 
     addCircleMarkers(~Longitude, ~Latitude, weight = 3, radius=4, 
                      color=~cof(Medico), stroke = F, fillOpacity = 0.9)  %>%
     addLegend("bottomright", colors= c("red", "blue", "orange","black","green","pink","purple"), labels=c("A'", "B", "C","D","E","F","G"), title="Medico")%>%
@@ -72,7 +81,7 @@ mapa_idade<-function(){
   cof <- colorFactor(c("red", "blue", "orange","black"), domain=c("20 a 40","40 a 60","acima de 60","menor que 20"))
   leaflet(pacientes)  %>% 
     addProviderTiles("Esri") %>% 
-    setView(-51.931180, -23.415453, zoom = 7) %>% 
+    setView(-51.931180, -23.415453, zoom = 12) %>% 
     addCircleMarkers(~Longitude, ~Latitude, weight = 3, radius=4, 
                      color=~cof(pacientes$categoria), stroke = F, fillOpacity = 0.9)  %>%
     addLegend("bottomright", colors= c("red", "blue", "orange"), labels=c("Menor que 40 anos","Entre 40 anos e 60 anos","Maior que 40 anos"), title="Idade")
