@@ -81,6 +81,26 @@ A fim de buscar uma melhor visualização dos dados, essas observações serão 
 ## Gráficos e tabelas
 
 ```{r}
+selectInput('input_table_1', 'Selecione um tipo', 
+            choices = c('Absoluta' = 'abs', 'Relativa' = 'rel'))
+
+DT::dataTableOutput('output_table_1')
+
+```
+
+```{r, context="server", include=T}
+output$output_table_1 <- DT::renderDataTable({
+  base <- table(pacientes$Medico, pacientes$categoria)
+  tab <- base
+  if(input$input_table_1 == 'rel'){
+    tab <- base %>% prop.table(margin = 1) %>% round(3)
+  }
+   
+  return(tab %>% as.data.frame.array())
+})
+```
+
+```{r}
 # frequência de atendimento por médicos
 pacientes %>%
   ggplot(aes(x=Medico)) + geom_bar(fill=fill_color) + theme_minimal() + 
@@ -137,27 +157,6 @@ output$output_analise_1 <- renderText({
     r <- 'Para a variável distância percebe-se uma certa assimetria nos dados, com eles concentrados mais ao lado esquerdo'
   }
   return(r)
-})
-```
-
-
-```{r}
-selectInput('input_table_1', 'Selecione um tipo', 
-            choices = c('Absoluta' = 'abs', 'Relativa' = 'rel'))
-
-DT::dataTableOutput('output_table_1')
-
-```
-
-```{r, context="server", include=T}
-output$output_table_1 <- DT::renderDataTable({
-  base <- table(pacientes$Medico, pacientes$categoria)
-  tab <- base
-  if(input$input_table_1 == 'rel'){
-    tab <- base %>% prop.table(margin = 1) %>% round(3)
-  }
-   
-  return(tab %>% as.data.frame.array())
 })
 ```
 
