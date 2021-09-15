@@ -11,6 +11,7 @@ knitr::opts_chunk$set(message = F, warning = F, echo=F)
 library(shiny)
 library(knitr)
 library(corrplot)
+library(leaflet)
 library(FSA)
 source("./01analise_functions.R")
 ```
@@ -133,7 +134,7 @@ output$output_analise_1 <- renderText({
   if(input$input_hist_boxplot == 'Idade'){
     r <- 'Observa-se que para a idade há indícios de normalidade dos dados com uma média aproximada em 55 anos de idade, e no boxplot nota-se alguns outliers outliers.'
   } else{
-    r <- 'Para a variável distância percebe-se uma certa assimetria nos dados, com eles concentrados mais ao lado esquerod.'
+    r <- 'Para a variável distância percebe-se uma certa assimetria nos dados, com eles concentrados mais ao lado esquerdo'
   }
   return(r)
 })

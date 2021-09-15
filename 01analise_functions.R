@@ -92,6 +92,7 @@ idade_medico<-function(medico){
   dados<-filter(pacientes, Medico == medico)
   ggplot(dados,aes(x=categoria))+
     geom_bar(fill="royalblue")+
+    geom_text(aes(y=..count.., label=..count..), vjust=1.5, stat = 'count') + 
     labs(x="Categoria",y="Frequencia") +
     theme_minimal()
   
@@ -109,7 +110,7 @@ teste_normal <- function(var){
     select(-c(statistic, data.name)) %>%
     relocate(method) %>% 
     mutate(method = str_replace_all(method, 'normality test', '')) %>% 
-    mutate(teste = ifelse(p.value > 0.05, 'Não rejeita H0', 'Rejeita H0')) %>%
+    mutate(decisão = ifelse(p.value > 0.05, 'Não rejeita H0', 'Rejeita H0')) %>%
     return()
 }
 
