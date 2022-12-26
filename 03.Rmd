@@ -1,0 +1,210 @@
+# Desafio
+
+## Introdução
+
+```{r}
+data_netflix <- read_xlsx('./data/dataset_netflix .xlsx')
+```
+
+
+A fim de prever a nota de filmes baseado em suas características, foi fornecido um banco de dados com `r nrow(data_netflix)` obersvações e `r ncol(data_netflix)` variáveis. 
+
+```{r}
+data_netflix_clean <- filter(data_netflix, type == 'Movie', rating > 0) %>% 
+  select(-c(show_id, type, description, title, date_added, director)) %>% 
+  mutate(duration = as.numeric(str_replace(duration, ' min', '')),
+         n_cast = str_count(cast, ',') + 1,
+         n_country = str_count(country, ',') + 1,
+         n_listed_in = str_count(listed_in, ',') + 1,
+         is_in_usa = str_detect(country, 'United States')
+         ) %>% select(-c(cast, country, listed_in))
+```
+
+Visando limpar o banco de dados para realizar a modelagem, foram filtrados somente os títulos que são filmes e de fato possuem alguma nota (rating > 0), além de remover as variáveis `show_id`, `director`, `description`, `title` e `date_added`. Além disso, a variável `duration` foi manipulada para ser tratada como número e as variáveis `cast`, `country` e `listed_in` foram substitudas por `n_cast`, `n_country` e `n_listed_in`, representando o número de pessoas no elenco, o número de países em que o título está disponível e o número de categorias, respsectivamente.
+
+Além disso, sabendo da importância do mercado norte americano, foi adicionada um variável *dummy* `is_in_usa`, representando se o título está disponível nos Estados Unidos. 
+
+
+Deste modo, após manipulações, o banco limpo apresenta `r nrow(data_netflix_clean)` observações e `r ncol(data_netflix_clean)` variáveis.
+
+```{r}
+kable(head(data_netflix_clean), align='c')
+```
+
+
+## Análise descritiva
+
+Fazendo uma breve análise do banco de dados limpo, obtém-se os seguintes gráficos:
+
+```{r}
+p1 <- data_netflix_clean %>% 
+  ggplot(aes(release_year, rating) ) + geom_point() + 
+  ggtitle('Notas X ano de lançamento')
+
+p2 <- data_netflix_clean %>% 
+  ggplot(aes(duration, rating) ) + geom_point() + 
+  ggtitle('Notas X duração do filme')
+
+grid.arrange(p1,p2, ncol=2)
+```
+
+```{r}
+p3 <- data_netflix_clean %>% 
+  ggplot(aes(n_cast, rating) ) + geom_point() + 
+  ggtitle('Notas X tamanho do elenco')
+
+p4 <- data_netflix_clean %>% 
+  ggplot(aes(n_country, rating) ) + geom_point() + 
+  ggtitle('Notas X número de países')
+
+p5 <- data_netflix_clean %>% 
+  ggplot(aes(n_listed_in, rating) ) + geom_point() + 
+  ggtitle('Notas X número de categorias')
+
+
+grid.arrange(p3,p4, p5, ncol=3)
+```
+
+```{r}
+data_netflix_clean %>% 
+  ggplot(aes(is_in_usa, rating)) + geom_boxplot() + 
+  ggtitle('Notas de para filmes disponíveis ou não nos EUA')
+```
+
+Baseado nos gráficos acima, há indícios de que quanto mais antigo o filme melhor sua classificação, e quanto menor o número de países em que o filme está disponível, melhor sua classificação. As demais variáveis não apresentaram nenhuma relação aparente.
+
+## Modelo de regressão
+
+A fim de prever a nota do filme, que é uma variável quantitativa contínua, será modelado um modelo de regressão, dado que o interesse em questão está na predição de um valor.
+
+```{r}
+fit <- lm(rating ~ ., data=data_netflix_clean)
+summary(fit)
+```
+
+Observando o resultado do primeiro modelo, nota-se que a quantidade de categorias e se o filme está disponível nos Estados Unidos não foram variáveis significativas no modelo, além disso, o valor do $R^2$ ajustado indica que o modelo explica de forma satisfatória somente cerca de 7.33% dos dados. Sendo assim, será feita uma nova modelagem removendo essas variáveis.
+
+```{r}
+data_netflix_clean2 <- select(data_netflix_clean, -c(n_listed_in, is_in_usa))
+fit2 <- lm(rating ~ ., data=data_netflix_clean2)
+summary(fit2)
+```
+
+Após a remoção das variáveis mencionadas, nota-se que as demais permaneceram significativas, entretanto, o valor do $R^2$ aumentou muito pouco.
+
+```{r}
+corrplot(cor(data_netflix_clean2))
+```
+
+Verificando se há indícios de multicolinearidade entre as variáveis, observa-se que não há nenhuma correlação forte entre elas, o que permite continuar a modelagem sem a necessidade de realizar algum método de redução de variáveis como por exemplo análise de componentes.
+
+Seguindo a análise, o próximo passo é realizar a análise de resíduos para verificar a adequação do modelo.
+
+```{r}
+plot(fit2$fitted.values, rstandard(fit2), main='Valores preditos X Resíudos studentizados')
+abline(h=c(-3,3), lwd=2, col='red', lty=2)
+
+par(mfrow=c(1,2))
+plot(fit2, which = 2)
+
+plot(fit2, which = 4)
+```
+
+Ao observar os resíduos studentizados, verificar-se que alguns valores acabaram ficando fora da região aceitável. Além disso, o QQ plot apresenta caudas pesadas, o que também mostra indícios de resíudos não normais. Ademais, a distância de Cook também apresenta alguns valores que podem ser possíveis pontos de alavanca, sendo assim, um novo modelo removendo estes valores pode gerar um novo modelo com um melhor resultado.
+
+```{r}
+data_netflix_clean3 <- slice(data_netflix_clean2, -which(cooks.distance(fit2) > 0.01))
+fit3 <- lm(rating ~ ., data=data_netflix_clean3)
+summary(fit3)
+
+par(mfrow=c(1,2))
+
+plot(fit3$fitted.values, rstandard(fit3), main='Valores preditos X Resíudos studentizados')
+abline(h=c(-3,3), lwd=2, col='red', lty=2)
+
+plot(fit2, which = 2)
+```
+
+Após realizar um novo modelo, ainda observa-se alguns resíduos que não indicam a não adequação do modelo, mas ainda sim pode-se notar uma pequena melhora no valor do $R^2$ ajustado.
+
+## Modelo de classificação
+
+Baseado nos resultados obtidos no modelo de regressão, o novo banco de dados com as variáveis removidas e pontos discrepantes descartados será utilizado como base para o treinamento de um algoritmo supervisionado para classificação dos filmes.
+
+Como pode-se notar nos valores a seguir, 25% dos filmes presentes no banco de dados possuem uma nota acima de 73. Com isso, esses serão classificados como bons filmes, enquanto os outros serão classificados como maus filmes.
+
+```{r}
+summary(data_netflix_clean3$rating)
+
+data_netflix_clean4 <- mutate(data_netflix_clean3, is_good = rating >= 73) %>% 
+  select(-rating)
+```
+
+Vale ressaltar que, para todos os modelos realizados, a modelagem será feita utilizando 70% dos dados para treino e 30% para teste, além de um cross-validation com 10 grupos.
+
+### Árvore de decisão
+
+Utilizando o pacote `rpart`, será treinado um modelo baseado em um algoritmo de árvore de decisão, a fim de verificar a capacidade de classificar um filme como bom ou não.
+
+```{r}
+set.seed(123)
+index <- createDataPartition(data_netflix_clean4$is_good, p = 0.7, list = FALSE)
+
+treino <- data_netflix_clean4[index,]
+teste <- data_netflix_clean4[-index,]
+
+fit <- train(as.factor(is_good) ~ ., data=treino, method = "rpart", 
+             trControl=trainControl(method = "cv", number = 10),
+             tuneLength = 10)
+
+prp(fit$finalModel)
+```
+
+```{r}
+aux <- predict(fit, teste, type = "prob")
+
+## curva ROC
+roc <- rocit(score = aux[,2], class = teste$is_good)
+```
+
+O gráfico acima apresenta a árvore de decisão feita após modelagem, e, após utilizá-la no banco de teste, obteve-se uma área sob a curva ROC de aproximadamente `r round(roc$AUC, 3)`. Além disso, o modelo apresentou uma acurácia acima de 70%, com especifidade e sensitividade de aproximadamente 0.886 e 0.235, respectivamente. Isto significa que, apesar da acurácia satisfatória, o modelo apresenta dificuldades para prever títulos que serão bem avaliados.
+
+```{r}
+plot(roc)
+
+## matriz de confusão
+confusionMatrix(as.factor(aux[,2] >= 0.5), as.factor(teste$is_good), positive='TRUE')
+```
+
+### KNN
+
+Utilizando agora o algoritmo KNN para a classificação, obtém-se o seguinte resultado:
+
+```{r}
+set.seed(123)
+fit <- train(as.factor(is_good) ~ ., data=treino, method = "knn", 
+              preProcess = c("center", "scale"),
+               trControl=trainControl(method = "cv", number = 10),
+               tuneLength = 20)
+```
+
+    
+```{r}
+aux <- predict(fit, teste, type = "prob")
+
+## curva ROC
+roc <- rocit(score = aux[,2], class = teste$is_good)
+```
+
+```{r}
+plot(roc)
+
+## matriz de confusão
+confusionMatrix(factor(aux[,2] >= 0.5), factor(teste$is_good), positive='TRUE')
+```
+
+Após modelagem, e, após utilizá-la no banco de teste, obteve-se uma área sob a curva ROC de aproximadamente `r round(roc$AUC, 3)`. Além disso, o modelo apresentou uma acurácia melhor que o modelo anterior, com especifidade e sensitividade de aproximadamente 0.942 e 0.156, respectivamente, ou seja, o novo modelo é melhor que o anterior para prever filmes que não serão bem avaliados, mas ao mesmo tempo apresenta um resultado pior para identificar filmes que realmente serão bem avaliados.
+
+### Conclusões
+
+Após realizar modelagens, obteve-se um modelo com uma acurácia relativamente alta, mas que apresenta problemas para de fato identificar qual filme será bem classificado. Os próximos passos para melhorar o modelo seria uma investigação mais detalhada sobre variáveis como elenco, categorias, e países no qual o filme está disponível. Outra abordagem além de um estudo mais aprofundado sobre as variáveis, seria verificar mais detalhadamente as observações presentes no banco, buscando filtrar outliers ou possíveis pontos discrepantes. Por fim, pode-se buscar algoritmos mais elaborados e comparar o resultado com os modelos já realizados.

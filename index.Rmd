@@ -1,263 +1,37 @@
 ---
-title: Laboratório de Estatística Aplicada 
-author: UEM - 2021
+title: Teste Cientista de dados - ELEFLOW
+author: Samuel Vianna Quintanilha
 output:
   output: rmdformats::readthedown
-runtime: shiny_prerendered
 ---
 
 ```{r, message=F, warning=F, echo=F}
-knitr::opts_chunk$set(message = F, warning = F, echo=F)
-library(shiny)
+# loading packages
 library(knitr)
+library(tidyverse)
+library(readxl)
+library(stringr)
+library(gridExtra)
 library(corrplot)
-library(leaflet)
-library(FSA)
-source("./01analise_functions.R")
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(ROCit)
+
+
+# Rmd settings
+knitr::opts_chunk$set(message = F, warning = F, echo=F)
 ```
 
 
-<!-- ------------------------------------------------- -->
-# Introdução
-
-A fim de fixar os conhecimentos passados em sala de aula, foi passado um banco de dados com informações sobre atendimentos em pontos de saúde de Maringá. 
-
-## Variáveis
-
-O banco de dados fornecido contém as seguintes variáveis:
-
-- Longitude;
-- Latitude;
-- Médico;
-- Idade.
-
-Além do mais, também foi fornecido a localização em que cada médico realiza os atendimentos, sendo com isso possível calcular a distância entre a residência do paciente e o local de atendimento.
-
-Para o cálculo da distância foi utilizado a fórmula de *Haversine*.
-
-Além do mais, a fim de procurar outros meios para avaliar a idade dos pacientes, foi criada uma variável denominada categoria, classificando a idade dos pacientes com os seguintes invervalos:
-
-- Jovem adulto: 20 a 40 anos;
-- Meia idade: 41 a 60 anos;
-- Idoso: acima de 60 anos.
-
-<!-- ------------------------------------------------- -->
-# Objetivos
-
-Com base nisso, esse trabalho possui os seguintes objetivos:
-
-- Verificar correlação entre distância e idade;
-- Verificar a média de idade atendida por cada médico;
-- Verificar a média de distância atendida por cada médico.
-
-<!-- ------------------------------------------------- -->
-# Lendo e manipulando os dados
-
-Após a leitura dos dados e criação de variáveis, o conjunto de dados ficou da seguinte forma:
-
-```{r}
-DT::dataTableOutput('view_data')
-```
-
-```{r, context="server", include=T}
-output$view_data <- DT::renderDataTable({
-  pacientes
-})
-```
-
-Após olhar as variáveis, percebe-se que há pacientes em que a distância foi superior à 50 km, como pode ser visto a seguir.
-
-```{r}
-pacientes %>% filter(dist > 50) %>% make_table()
-
-pacientes <- pacientes %>% filter(dist < 50)
-```
-
-A fim de buscar uma melhor visualização dos dados, essas observações serão tratadas como valores errados e serão removidas do banco de dados.
-
-<!-- ------------------------------------------------- -->
-# Análise Descritiva
-
-## Gráficos e tabelas
-
-```{r}
-selectInput('input_table_1', 'Selecione um tipo', 
-            choices = c('Absoluta' = 'abs', 'Relativa' = 'rel'))
-
-DT::dataTableOutput('output_table_1')
+```{r pt1, child='./01.Rmd'}
 
 ```
 
-```{r, context="server", include=T}
-output$output_table_1 <- DT::renderDataTable({
-  base <- table(pacientes$Medico, pacientes$categoria)
-  tab <- base
-  if(input$input_table_1 == 'rel'){
-    tab <- base %>% prop.table(margin = 1) %>% round(3)
-  }
-   
-  return(tab %>% as.data.frame.array())
-})
-```
-
-```{r}
-# frequência de atendimento por médicos
-pacientes %>%
-  ggplot(aes(x=Medico)) + geom_bar(fill=fill_color) + theme_minimal() + 
-    geom_text(aes(y=..count.., label=..count..), vjust=1.5, stat = 'count') + 
-    ggtitle('Distribuição dos atendimentos de acordo com o médico')
-```
-Observa-se que o médico E foi que mais atendeu pacientes.
-
-```{r}
-# frequência de categorias de idade
-pacientes %>%
-  ggplot(aes(x=categoria)) + geom_bar(fill=fill_color) + theme_minimal() + 
-    geom_text(aes(y=..count.., label=..count..), vjust=1.5, stat = 'count') +
-    ggtitle('Distribuição dos atendimentos de acordo com a faixa etária')
-```
-
-```{r}
-selectInput('input_idade_medico', 'Selecione um Médico', 
-            choices = c('A' = 'A', 'B' = 'B', 'C' = 'C', 'D' = 'D', 'E' = 'E', 'F' = 'F', 'G'='G'))
-
-plotOutput('output_idade_medico')
-```
-
-```{r, context="server", include=T}
-output$output_idade_medico <- renderPlot({
-  idade_medico(input$input_idade_medico)
-})
+```{r pt2, child='./02.Rmd'}
 
 ```
-Percebe-se que a grande maioria dos pacientes está entre 40 e 60 anos, sendo essa a maior parte de pacientes atendidos por todos os médicos.
 
+```{r pt3, child='./03.Rmd'}
 
-
-```{r}
-selectInput('input_hist_boxplot', 'Selecione uma variável', 
-            choices = c('Idade' = 'Idade', 'Distância' = 'dist'))
-
-plotOutput('output_hist_boxplot')
-
-textOutput('output_analise_1')
-```
-
-
-```{r, context="server", include=T}
-output$output_hist_boxplot <- renderPlot({
-  hist_boxplot(pacientes[,input$input_hist_boxplot])
-})
-
-output$output_analise_1 <- renderText({
-  r <- ''
-  if(input$input_hist_boxplot == 'Idade'){
-    r <- 'Observa-se que para a idade há indícios de normalidade dos dados com uma média aproximada em 55 anos de idade, e no boxplot nota-se alguns outliers outliers.'
-  } else{
-    r <- 'Para a variável distância percebe-se uma certa assimetria nos dados, com eles concentrados mais ao lado esquerdo'
-  }
-  return(r)
-})
-```
-
-## Mapas
-
-```{r}
-mapa_medico()
-```
-
-Conseguimos visualizar uma maior parte dos pacientes atendidos pelo medico E, e uma distribuição dos pacientes de forma heterogênea, sem indícios de agrupamentos de acordo com o médico.
-
-```{r}
-mapa_idade()
-```
-
-Percebemos uma maior frequencia de pacientes entre 40 e 60 anos, também com uma distribuição heterogênea e sem indícios de agrupamentos geográficos.
-
-
-```{r}
-fluidRow(
-    column(6,
-      sliderInput('radius_input', 'Radius', min=5, max=50, value=20)
-    ),
-    column(6,
-      sliderInput('blur_input', 'Blur', min=1, max=20, value=10)
-    )
-  )
-
-
-
-leafletOutput('mapa_geral')
-```
-
-```{r, context='server', include=T}
-output$mapa_geral <- renderLeaflet({
-  mapa_geral(input$radius_input,input$blur_input)
-})
-```
-
-
-## Correlação
-
-```{r}
-cor(pacientes[,c('Idade', 'dist')]) %>% make_table()
-```
-Não há correlação entre a idade e a distância.
-
-<!-- ------------------------------------------------- -->
-# Testes
-
-Para saber qual o teste adequado a se aplicar, foi testado se as variábeis apresentam distribuição normal.
-
-**Testes de normalidade para a idade**
-```{r}
-teste_normal(pacientes$Idade) %>% make_table()
-```
-
-**Testes de normalidade para a distância**
-```{r}
-teste_normal(pacientes$dist) %>% make_table()
-```
-
-Com base nos resultados acima, para ambas as variáveis serão utilizados testes não paramétricos para comparação múltipla.
-
-## Idade X Médico
-
-Rodando o teste de Kruskal-Wallis para verificar a diferença entre idades de acordo com o médico, temos:
-
-```{r}
-kruskal.test(Idade ~ Medico, data=pacientes)
-```
-
-
-Como visto acima, à um nível de significância de 5% não se rejeita a hipótese nula, ou seja, não há diferença significativa entre as idades atendidas por cada médico.
-
-## Distância X Médico
-
-Rodando o teste de Kruskal-Wallis para verificar a diferença entre as distâncias de acordo com o médico, temos:
-
-```{r}
-kruskal.test(dist ~ Medico, data=pacientes)
-```
-
-
-Como visto acima, à um nível de significância de 5% rejeita-se a hipótese nula, ou seja, há pelo menos um médico com a média de distância dos pacientes diferente dos demais. 
-
-Para verificar as diferenças entre os médicos, foi realizado o pós teste de Dunn.
-
-```{r}
-teste_dist_medico <- dunnTest(pacientes$dist~pacientes$Medico)
-
-teste_dist_medico[[3]]
-```
-
-Com base na tabela acima, temos os seguintes grupos:
-
-```{r}
-medias <- pacientes %>% group_by(Medico) %>% 
-  summarise(media=mean(dist)) %>% arrange(desc(media))
-
-medias$grupo <- c('A', 'A', 'B', 'B', 'BC', 'BC', 'C')
-
-medias %>% make_table()
 ```

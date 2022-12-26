@@ -1,0 +1,42 @@
+# Parte 2 - Machine Learning
+
+
+## A) Aprendizado supervisionado X não supervisionado
+
+O aprendizado de máquina supervisionado visa a criação de um modelo preditivo via treinamento através de um banco de dados "completo", isto é, que possui tanto as variáveis dependentes do modelo quanto a variável resposta. Sendo assim, o objetivo principal de um modelo feito através do aprendizado supervisionado é conseguir categorizar ou identificar corretamente um evento, baseado em exemplos vistos anteriormente, como por exemplo um modelo para diagnóstico de determinada doença baseado em informações de um paciente. Alguns exemplos de algoritmos supervisionado são o KNN, que irá classificar a observação de acordo com os "K vizinhos mais próximos", ou até mesmo modelos de regressão, em que o interesse é a predição de um valor contínuo.
+
+Por sua vez, o aprendizado de máquina não supervisionado consiste em agrupar as observações baseadas em suas características, ou seja, nesse caso não existe um valor "certo" a ser predito, mas sim há o interesse de criar grupos para os valores observados, como um modelo que pretende classificar jogadores de futebol baseado em suas performances ao longo da temporada. Alguns exemplos de algoritmos não supervisionado são o K-means e o modelo de agrupamento hierárquico.
+
+
+## B) Analisando matrizes de confusão
+
+A tabela a seguir apresenta a acurácia, especificidade e sensitividade de cada uma das matrizes.
+
+```{r}
+matriz_1 <- matrix(c(5740, 519,
+              1119, 9413), byrow=T, ncol=2)
+
+matriz_2 <- matrix(c(6751, 705,
+              2005, 7330), byrow=T, ncol=2)
+
+# função para matriz de confusão
+manual_cf <- function(matrix){
+
+  
+  ac <- sum(diag(matrix)) / sum(matrix)
+  esp <- matrix[2,2] / sum(matrix[,2])
+  sens <- matrix[1,1] / sum(matrix[,1])
+  
+  return(data.frame(ac, esp, sens)) 
+}
+
+t <- rbind(manual_cf(matriz_1),
+        manual_cf(matriz_2)) %>% round(3)
+
+row.names(t) <- c('Matriz 1', 'Matriz 2')
+colnames(t) <- c('Acurácia', 'Especificidade', 'Sensitividade')
+
+kable(t, align='c')
+```
+
+Como pode ser visto na tabela acima, a matriz 1 possui maiores valores para acurácia, especificidade e sensitividade, ou seja, ela foi capaz de prever mais resultados corretamente, além de possuir um melhor desempenho em realmente identificar valores negativos e posivitos, se comparado com a matriz 2. Portanto, pode-se considerar o modelo 1 como o melhor ajustado.

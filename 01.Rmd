@@ -1,0 +1,84 @@
+# Parte 1 - Visualização de dados
+
+## Introdução
+
+```{r}
+data <- read_csv('./data/dataset_video_games.csv', na = 'N/A')
+
+```
+
+O banco de dados utilizado apresenta informações referentes à `r nrow(data)` títulos de vídeo games. A seguir, pode-se visualizar os 5 primeiros lugares do rank.
+
+```{r}
+kable(head(data, 5), align='c')
+```
+
+## A) Gêneros mais populares
+
+O Gráfico de barras a seguir apresenta os gêneros mais populares entre os 150 primeiros títulos do rank. Pode-ser perceber que há 11 gêneros diferentes entre os títulos mais vendidos, sendo que os 3 gêneros foram "shooter", "action" e "role-playing", respectivamente.
+
+```{r}
+head(data, 150) %>% group_by(Genre) %>% count() %>%
+  ggplot(aes(reorder(Genre, -n), n)) + geom_bar(stat = 'identity', col='white', fill='#008fac') +
+  geom_label(aes(y=n, label=n)) +
+  labs(x='Gênero', y='Contagem') + ggtitle('Gêneros mais populares') + theme_minimal() 
+```
+
+## B) Retrospectiva de vendas da Nintendo
+
+```{r}
+data_nintendo_latest <- filter(data, Year >= 2012, Publisher == 'Nintendo')
+```
+
+
+Como pode ser visto no gráfico a seguir, no banco de dados disponibilizado consta que a Nintendo publicou `r nrow(data_nintendo_latest)` desde 2012, sendo que o pico de lançamentos foi o ano de 2015 e o último jogo foi publicado em 2016. 
+
+```{r}
+data_nintendo_latest %>% group_by(Year) %>% count() %>% 
+  ggplot(aes(Year, n)) + geom_bar(stat = 'identity', col='white', fill='#008fac') +
+  geom_label(aes(y=n, label=n)) +
+  labs(x='Ano', y='Lançamentos') + ggtitle('Lançamentos por ano desde 2012 (Nintendo)') + theme_minimal() 
+```
+
+
+A seguir, o gráfico de dispersão apresenta o desempenho de venda da Nintentdo nos últimos 10 anos. Percebe-se uma grande maioria dos jogos com a quantidade de vendas globais inferiores à 5 milhões em todos os anos, com excessão de alguns títulos que se destacaram entre 2012 e 2014. Além disso, há indícios de uma correlação linear negativa fraca, isto é, as vendas têm diminuido ao longo dos anos.
+
+```{r}
+data_nintendo_latest %>% 
+  ggplot(aes(Year, Global_Sales)) + geom_point(col='#008fac', size=2) + 
+  labs(x='Ano', y='Vendas globais (em milhões de dólares)') + theme_minimal() +
+  ggtitle('Desempenho de vendas desde 2012 (Nintendo)')
+```
+
+Ao realizar o teste de correlação de Pearson, conclui-se que, à um nível de significância de 5%, que a correlação entre o ano de lançamento e as vendas globais foi de aproximadamente -0.205, isto é, há evidências estatísticas para se dizer que as vendas da Nintendo diminuiram nos últimos anos.
+
+```{r}
+cor.test(data_nintendo_latest$Year, data_nintendo_latest$Global_Sales)
+```
+
+Por fim, a tabela a seguir apresenta os títulos da Nintendo que se destacaram e alcançaram mais que 5 milhões de dólares nas vendas globais.
+
+
+```{r}
+filter(data_nintendo_latest, Global_Sales > 5) %>% kable(align='c')
+```
+
+
+## C) Maiores "Publishers" em vendas nos Estados Unidos
+
+A seguir, é apresentado a quantidade de vendas das 5 maiores Publishers dos estados Unidos, sendo que a que apresentou maior quantidade de vendas foi a Nintendo.
+
+```{r}
+biggest_na_publishers <- group_by(data, Publisher) %>% summarise(Vendas = sum(NA_Sales)) %>% 
+  arrange(desc(Vendas)) %>% slice(1:5)
+
+kable(biggest_na_publishers, align='c')
+
+biggest_na_publishers %>% 
+  ggplot(aes(reorder(Publisher, Vendas), Vendas)) +
+  geom_col(color='white', fill='#008fac') + coord_flip() +
+  labs(x='Publisher') + ggtitle('Maiores Publishers nos Estados Unidos') +
+  geom_label(aes(y=Vendas, label=Vendas)) + 
+  theme_minimal()
+```
+
